@@ -10,23 +10,6 @@
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Technologies](#technologies)
-- [Project Structure](#project-structure)
-- [Setup & Installation](#setup--installation)
-- [Data Pipeline](#data-pipeline)
-- [ML Model Details](#ml-model-details)
-- [API Documentation](#api-documentation)
-- [Deployment](#deployment)
-- [Results](#results)
-- [Important Note: Data Leakage Fix](#important-note-data-leakage-fix)
-- [Usage Examples](#usage-examples)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -256,7 +239,7 @@ Partially Ready       0.87     0.86      0.86      304
 ### Base URL
 
 **Local:** `http://localhost:5000`  
-**Production:** `https://your-domain.com` (after deployment)
+
 
 ### Endpoints Summary
 
