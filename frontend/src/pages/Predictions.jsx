@@ -123,6 +123,10 @@ export default function Predictions() {
   const handlePredict = async () => {
     if (!selected) { toast.error('Select an employee first'); return }
     if (!jobRole)  { toast.error('Select a job role'); return }
+    if (!jobs.some(j => j.toLowerCase() === jobRole.toLowerCase())) {
+      toast.error(`"${jobRole}" isn't a role the model recognizes — pick one from the dropdown`)
+      return
+    }
     const res = await predict(selected._id, jobRole, experience)
     if (res.success) setStep(2)
     else toast.error(res.error || 'Prediction failed')
@@ -165,7 +169,15 @@ export default function Predictions() {
                     {filteredEmps.map(emp=>(
                       <button key={emp._id}
                         className={`emp-card ${selected?._id===emp._id?'selected':''}`}
-                        onClick={()=>{ setSelected(emp); setJobRole(emp.jobRole||'') }}>
+                        onClick={()=>{
+                          setSelected(emp)
+                          // Only prefill the job role if it's a name the prediction
+                          // model actually recognizes — the employee's stored jobRole
+                          // may come from a different taxonomy (e.g. seeded local data)
+                          // that the model doesn't have requirements for.
+                          const knownRole = jobs.find(j => j.toLowerCase() === (emp.jobRole||'').toLowerCase())
+                          setJobRole(knownRole || '')
+                        }}>
                         <div className="emp-card-avatar">{(emp.firstName?.[0]||'?').toUpperCase()}</div>
                         <div className="emp-card-info">
                           <div className="emp-card-name">{emp.firstName} {emp.lastName}</div>
@@ -225,7 +237,14 @@ export default function Predictions() {
                 </div>
 
                 <button className="pred-next-btn"
-                  onClick={()=>{ if(!jobRole){toast.error('Select a job role');return} setStep(1) }}>
+                  onClick={()=>{
+                    if(!jobRole){toast.error('Select a job role');return}
+                    if(!jobs.some(j=>j.toLowerCase()===jobRole.toLowerCase())){
+                      toast.error(`"${jobRole}" isn't a role the model recognizes — pick one from the dropdown`)
+                      return
+                    }
+                    setStep(1)
+                  }}>
                   Next: Rate Skills
                   <span className="material-icons-round" style={{fontSize:18}}>arrow_forward</span>
                 </button>

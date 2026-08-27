@@ -33,7 +33,11 @@ export const huggingfaceService = {
       return res.data
     } catch (error) {
       console.error('HF predict error:', error.message)
-      return { readiness: 'Not Ready', confidence: 0 }
+      const hfMessage = error.response?.data?.error
+      const message = hfMessage || `Could not reach the prediction model (${error.message})`
+      const err = new Error(message)
+      err.status = error.response?.status === 400 ? 400 : 502
+      throw err
     }
   },
 }
