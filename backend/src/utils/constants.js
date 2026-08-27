@@ -1,0 +1,30 @@
+export const SKILLS = [
+  'machine_operation',
+  'equipment_setup',
+  'troubleshooting',
+  'process_knowledge',
+  'cleaning_sanitation',
+  'gmp_compliance',
+  'hygiene_ppe',
+  'haccp_knowledge',
+  'ccp_monitoring',
+  'quality_inspection',
+  'documentation',
+  'communication',
+  'teamwork',
+  'problem_solving',
+  'adaptability',
+  'time_management',
+  'leadership',
+  'machine_startup',
+  'product_changeover',
+  'safety_compliance',
+  'quality_sampling',
+  'record_keeping',
+]
+
+export const READINESS = {
+  READY: 'Ready',
+  PARTIALLY_READY: 'Partially Ready',
+  NOT_READY: 'Not Ready',
+}

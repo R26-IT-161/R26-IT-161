@@ -1,14 +1,29 @@
 @echo off
-REM Install backend and frontend dependencies
-
+echo ==========================================
+echo Installing backend dependencies...
+echo ==========================================
 cd backend
-python -m venv venv
-call venv\Scripts\activate.bat
-pip install -r requirements.txt
-
-cd ..\frontend
-call npm i
+call npm install
+if %errorlevel% neq 0 (
+    echo [ERROR] Backend installation failed!
+    goto end
+)
+cd ..
 
 echo.
-echo Installation complete!
+echo ==========================================
+echo Installing frontend dependencies...
+echo ==========================================
+cd frontend
+call npm install
+if %errorlevel% neq 0 (
+    echo [ERROR] Frontend installation failed!
+    goto end
+)
+cd ..
+
+echo.
+echo Installation complete successfully!
+
+:end
 pause
