@@ -1,6 +1,7 @@
 import { Employee } from '../models/Employee.js'
 import { JobRole }  from '../models/JobRole.js'
 import { Prediction } from '../models/Prediction.js'
+import { huggingfaceService } from '../utils/huggingface.js'
 
 // For employees who have predictions but skillProfile not yet written
 // (existing data before this feature), fall back to their latest prediction's skillInput
@@ -64,14 +65,32 @@ function scoreEmployee(skillProfile, requirements) {
 
 export const matchService = {
   async findMatches(jobRoleName, organizationId) {
-    // 1. Find the job role and its requirements
+    // 1. Find the job role and its requirements.
+    // The job dropdown is populated from the Hugging Face Space's job list
+    // (huggingfaceService.getJobs), which does not necessarily match the
+    // names seeded into the local Mongo JobRole collection. So: try local
+    // Mongo first (it's richer — has category/level/description), and if
+    // that role isn't seeded locally, fall back to the HF Space's own
+    // requirements for that job so the two stay in sync.
+    let requirements = null
+    let jobRoleMeta = null
+
     const jobRole = await JobRole.findOne({ name: jobRoleName })
-    if (!jobRole) {
-      // Job role not in DB — return employees with no scoring
-      return { jobRole: null, matches: [] }
+    if (jobRole) {
+      requirements = Object.fromEntries(jobRole.requirements)
+      jobRoleMeta = { name: jobRole.name, requirements, totalSkills: Object.keys(requirements).length }
+    } else {
+      const hfRequirements = await huggingfaceService.getJobSkills(jobRoleName)
+      if (hfRequirements && Object.keys(hfRequirements).length > 0) {
+        requirements = hfRequirements
+        jobRoleMeta = { name: jobRoleName, requirements, totalSkills: Object.keys(requirements).length }
+      }
     }
 
-    const requirements = Object.fromEntries(jobRole.requirements)
+    if (!requirements) {
+      // Job role not found locally or on the HF Space — return employees with no scoring
+      return { jobRole: null, matches: [] }
+    }
 
     // 2. Get all employees (with their skill profiles)
     const filter = organizationId ? { organizationId } : {}
@@ -116,7 +135,7 @@ export const matchService = {
     })
 
     return {
-      jobRole: { name: jobRole.name, requirements, totalSkills: Object.keys(requirements).length },
+      jobRole: jobRoleMeta,
       matches: results,
       summary: {
         total:          results.length,
