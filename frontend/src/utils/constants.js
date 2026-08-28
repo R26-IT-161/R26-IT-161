@@ -7,6 +7,31 @@ export const SKILLS = [
   'quality_sampling', 'record_keeping'
 ]
 
+export const SKILL_COURSES = {
+  machine_operation: { title: 'Machine Operation Fundamentals', provider: 'Internal Training', duration: '2 days' },
+  equipment_setup: { title: 'Equipment Setup & Changeover', provider: 'Internal Training', duration: '1 day' },
+  troubleshooting: { title: 'Line Troubleshooting Essentials', provider: 'Internal Training', duration: '1 day' },
+  process_knowledge: { title: 'Production Process Overview', provider: 'Internal Training', duration: '1 day' },
+  cleaning_sanitation: { title: 'Sanitation & Cleaning Procedures', provider: 'Internal Training', duration: 'Half day' },
+  gmp_compliance: { title: 'Good Manufacturing Practices (GMP)', provider: 'Compliance Academy', duration: 'Half day' },
+  hygiene_ppe: { title: 'Hygiene & PPE Standards', provider: 'Compliance Academy', duration: '2 hours' },
+  haccp_knowledge: { title: 'HACCP Fundamentals', provider: 'Food Safety Institute', duration: '2 days' },
+  ccp_monitoring: { title: 'Critical Control Point Monitoring', provider: 'Food Safety Institute', duration: '1 day' },
+  quality_inspection: { title: 'Quality Inspection Techniques', provider: 'Internal Training', duration: '1 day' },
+  documentation: { title: 'Production Documentation & Recordkeeping', provider: 'Internal Training', duration: '2 hours' },
+  communication: { title: 'Workplace Communication Skills', provider: 'Soft Skills Academy', duration: '1 day' },
+  teamwork: { title: 'Building Effective Teams', provider: 'Soft Skills Academy', duration: 'Half day' },
+  problem_solving: { title: 'Practical Problem Solving', provider: 'Soft Skills Academy', duration: '1 day' },
+  adaptability: { title: 'Adapting to Change on the Line', provider: 'Soft Skills Academy', duration: '2 hours' },
+  time_management: { title: 'Time & Priority Management', provider: 'Soft Skills Academy', duration: 'Half day' },
+  leadership: { title: 'Frontline Leadership Essentials', provider: 'Leadership Academy', duration: '3 days' },
+  machine_startup: { title: 'Machine Startup & Shutdown Procedures', provider: 'Internal Training', duration: 'Half day' },
+  product_changeover: { title: 'Product Changeover Best Practices', provider: 'Internal Training', duration: 'Half day' },
+  safety_compliance: { title: 'Workplace Safety Compliance', provider: 'Compliance Academy', duration: '1 day' },
+  quality_sampling: { title: 'Quality Sampling Methods', provider: 'Internal Training', duration: 'Half day' },
+  record_keeping: { title: 'Accurate Record Keeping', provider: 'Internal Training', duration: '2 hours' },
+}
+
 export const SKILL_LABELS = {
   machine_operation: 'Machine Operation',
   equipment_setup: 'Equipment Setup',

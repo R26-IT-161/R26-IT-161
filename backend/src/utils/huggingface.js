@@ -33,6 +33,9 @@ export const huggingfaceService = {
       return res.data
     } catch (error) {
       console.error('HF predict error:', error.message)
+      // Don't fake a result — a failed call is not a real "Not Ready" assessment.
+      // Surface the actual reason (e.g. HF Space doesn't recognize this job name)
+      // so the caller can show it and the bad prediction never gets saved.
       const hfMessage = error.response?.data?.error
       const message = hfMessage || `Could not reach the prediction model (${error.message})`
       const err = new Error(message)

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { usePrediction } from '../hooks/usePrediction'
-import { SKILLS, SKILL_LABELS } from '../utils/constants'
+import { SKILLS, SKILL_LABELS, SKILL_COURSES } from '../utils/constants'
 import { employeeService } from '../services/employee'
 import { jobsService } from '../services/jobs'
 import Layout from '../components/Layout'
@@ -351,21 +351,34 @@ export default function Predictions() {
               </span>
             </div>
 
-            {/* Skill gaps */}
+            {/* Skill gaps + recommended courses */}
             {hasGaps && (
               <div className="result-gaps-card">
                 <div className="result-gaps-title">
                   <span className="material-icons-round" style={{fontSize:18, color:'var(--md-primary)'}}>trending_up</span>
                   Skills to Improve ({result.gaps.length})
                 </div>
-                <div className="gap-chips-wrap">
-                  {[...result.gaps].sort((a,b)=>b.gap-a.gap).map((g,i)=>(
-                    <div key={i} className="gap-chip-v2">
-                      <span className="material-icons-round" style={{fontSize:14,color:'#C5221F'}}>arrow_upward</span>
-                      <span className="gap-chip-name">{SKILL_LABELS[g.skill]||g.skill}</span>
-                      <span className="gap-chip-delta">+{g.gap} needed</span>
-                    </div>
-                  ))}
+                <div className="gap-courses-list">
+                  {[...result.gaps].sort((a,b)=>b.gap-a.gap).map((g,i)=>{
+                    const course = SKILL_COURSES[g.skill]
+                    const isHigh = g.gapLabel === 'High'
+                    return (
+                      <div key={i} className="gap-course-row" style={isHigh?{borderColor:'#C5221F33'}:undefined}>
+                        <div className="gap-course-row-top">
+                          <span className="material-icons-round" style={{fontSize:14,color:isHigh?'#C5221F':'#F9AB00'}}>arrow_upward</span>
+                          <span className="gap-chip-name">{SKILL_LABELS[g.skill]||g.skill}</span>
+                          <span className="gap-chip-delta">+{g.gap} needed</span>
+                          {isHigh && <span className="gap-priority-badge">Priority</span>}
+                        </div>
+                        {course && (
+                          <div className="gap-course-rec">
+                            <span className="material-icons-round" style={{fontSize:14,color:'var(--md-on-surface-variant)'}}>school</span>
+                            <span><strong>{course.title}</strong> · {course.provider} · {course.duration}</span>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
