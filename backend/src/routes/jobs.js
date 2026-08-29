@@ -20,4 +20,11 @@ router.get('/', asyncHandler(async (req, res) => {
   res.json({ jobs })
 }))
 
+router.get('/skills', asyncHandler(async (req, res) => {
+  const { job } = req.query
+  if (!job) return res.status(400).json({ error: 'job query param is required' })
+  const requirements = await huggingfaceService.getJobSkills(job)
+  res.json({ job, requirements })
+}))
+
 export default router

@@ -41,8 +41,14 @@ function Steps({ current }) {
   )
 }
 
-function SkillGroup({ group, skills, updateSkill, onFillGroup }) {
-  const avg = (group.skills.reduce((s,k) => s+(skills[k]||1), 0) / group.skills.length).toFixed(1)
+function SkillGroup({ group, skills, updateSkill, onFillGroup, relevantSkills, showAllSkills }) {
+  const isRelevant = (skill) => !relevantSkills || relevantSkills.has(skill)
+  const visibleSkills = group.skills.filter(s => showAllSkills || isRelevant(s))
+  const hiddenCount = group.skills.length - visibleSkills.length
+
+  if (visibleSkills.length === 0) return null // whole group irrelevant to this role and hidden
+
+  const avg = (visibleSkills.reduce((s,k) => s+(skills[k]||1), 0) / visibleSkills.length).toFixed(1)
   return (
     <div className="skill-group-card">
       <div className="skill-group-header">
@@ -52,15 +58,19 @@ function SkillGroup({ group, skills, updateSkill, onFillGroup }) {
         </div>
         <div className="skill-group-actions">
           <div className="skill-group-avg" style={{color:LEVEL_COLOR[Math.round(avg)]}}>avg {avg}</div>
-          <button className="fill-btn" onClick={() => onFillGroup(group.skills, 3)}>Auto-fill 3</button>
+          <button className="fill-btn" onClick={() => onFillGroup(visibleSkills, 3)}>Auto-fill 3</button>
         </div>
       </div>
       <div className="skill-group-rows">
-        {group.skills.map(skill => {
+        {visibleSkills.map(skill => {
           const val = skills[skill] || 1
+          const dimmed = !isRelevant(skill)
           return (
-            <div key={skill} className="skill-row-v2">
-              <span className="skill-row-name-v2">{SKILL_LABELS[skill]}</span>
+            <div key={skill} className={`skill-row-v2 ${dimmed?'skill-row-dimmed':''}`}>
+              <span className="skill-row-name-v2">
+                {SKILL_LABELS[skill]}
+                {dimmed && <span className="skill-not-required-tag">not required for this role</span>}
+              </span>
               <div className="skill-slider-wrap">
                 <input type="range" min="1" max="5" value={val}
                   className="skill-slider"
@@ -76,6 +86,9 @@ function SkillGroup({ group, skills, updateSkill, onFillGroup }) {
             </div>
           )
         })}
+        {!showAllSkills && hiddenCount > 0 && (
+          <div className="skill-hidden-hint">{hiddenCount} more skill{hiddenCount>1?'s':''} in this group not required for this role</div>
+        )}
       </div>
     </div>
   )
@@ -92,6 +105,8 @@ export default function Predictions() {
   const [jobRole,    setJobRole]    = useState('')
   const [experience, setExperience] = useState(0)
   const [loadingEmps, setLoadingEmps] = useState(true)
+  const [jobRequirements, setJobRequirements] = useState(null) // {skill: level} for the selected role, or null while unknown
+  const [showAllSkills, setShowAllSkills] = useState(false)
 
   const { skills, setSkills, updateSkill, resetSkills, predict, result, setResult, loading } = usePrediction()
 
@@ -120,6 +135,12 @@ export default function Predictions() {
 
   const avgScore = (SKILLS.reduce((s,k)=>s+(skills[k]||1),0)/SKILLS.length).toFixed(1)
 
+  const REQ_THRESHOLD = 3 // requirement level 3+ ("Intermediate" or higher) counts as relevant to the role
+  const hasReqData = jobRequirements && Object.keys(jobRequirements).length > 0
+  const relevantSkills = hasReqData
+    ? new Set(Object.entries(jobRequirements).filter(([,lvl]) => lvl >= REQ_THRESHOLD).map(([k])=>k))
+    : null // null = no requirement data available (loading or lookup failed) -> don't mask anything
+
   const handlePredict = async () => {
     if (!selected) { toast.error('Select an employee first'); return }
     if (!jobRole)  { toast.error('Select a job role'); return }
@@ -135,6 +156,7 @@ export default function Predictions() {
   const handleNewAssessment = () => {
     setStep(0); setSelected(null); setJobRole(''); setExperience(0)
     resetSkills(); setResult(null); setEmpSearch('')
+    setJobRequirements(null); setShowAllSkills(false)
   }
 
   const rc = result ? (RC[result.readiness] || RC['Not Ready']) : null
@@ -237,12 +259,17 @@ export default function Predictions() {
                 </div>
 
                 <button className="pred-next-btn"
-                  onClick={()=>{
+                  onClick={async ()=>{
                     if(!jobRole){toast.error('Select a job role');return}
                     if(!jobs.some(j=>j.toLowerCase()===jobRole.toLowerCase())){
                       toast.error(`"${jobRole}" isn't a role the model recognizes — pick one from the dropdown`)
                       return
                     }
+                    setJobRequirements(null)
+                    setShowAllSkills(false)
+                    jobsService.getJobSkills(jobRole)
+                      .then(reqs => setJobRequirements(reqs && Object.keys(reqs).length ? reqs : {}))
+                      .catch(() => setJobRequirements({})) // fall back to showing everything
                     setStep(1)
                   }}>
                   Next: Rate Skills
@@ -284,13 +311,22 @@ export default function Predictions() {
               </div>
             </div>
 
+            {hasReqData && (
+              <label className="show-all-skills-toggle">
+                <input type="checkbox" checked={showAllSkills}
+                  onChange={e=>setShowAllSkills(e.target.checked)} />
+                Show all skills (including ones not required for {jobRole})
+              </label>
+            )}
+
             {SKILL_GROUPS.map(g=>(
               <SkillGroup key={g.label} group={g} skills={skills}
-                updateSkill={updateSkill} onFillGroup={fillGroup}/>
+                updateSkill={updateSkill} onFillGroup={fillGroup}
+                relevantSkills={relevantSkills} showAllSkills={showAllSkills || !hasReqData}/>
             ))}
 
             <div className="pred-footer-actions">
-              <button className="pred-back-btn" onClick={()=>setStep(0)}>
+              <button className="pred-back-btn" onClick={()=>{setStep(0); setJobRequirements(null); setShowAllSkills(false)}}>
                 <span className="material-icons-round" style={{fontSize:18}}>arrow_back</span>Back
               </button>
               <button className="predict-btn" onClick={handlePredict} disabled={loading}>
