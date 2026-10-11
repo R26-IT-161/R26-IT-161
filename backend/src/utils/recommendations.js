@@ -1,3 +1,5 @@
+import { SKILL_LABELS, getCourseSuggestions, gapPriority, learningLevel } from './courses.js'
+
 // Hardcoded per-skill recommendations
 // Each skill has: action (what to do), resource (where/how), timeframe
 const RECS = {
@@ -32,11 +34,17 @@ const DEFAULT = {
 }
 
 export function getRecommendations(gaps) {
-  return gaps.map(g => ({
-    skill:     g.skill,
-    gap:       g.gap,
-    empLevel:  g.empLevel  ?? null,
-    reqLevel:  g.reqLevel  ?? null,
-    ...( RECS[g.skill] || { ...DEFAULT }),
-  }))
+  return gaps
+    .map(g => ({
+      skill:     g.skill,
+      label:     SKILL_LABELS[g.skill] || g.skill,
+      gap:       g.gap,
+      empLevel:  g.empLevel  ?? null,
+      reqLevel:  g.reqLevel  ?? null,
+      priority:  gapPriority(g.gap),
+      level:     learningLevel(g.empLevel ?? 1),
+      courses:   getCourseSuggestions(g.skill, g.empLevel),
+      ...( RECS[g.skill] || { ...DEFAULT }),
+    }))
+    .sort((a, b) => b.gap - a.gap)   // biggest gaps first
 }

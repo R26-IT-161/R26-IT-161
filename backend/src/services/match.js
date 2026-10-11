@@ -2,6 +2,7 @@ import { Employee } from '../models/Employee.js'
 import { JobRole }  from '../models/JobRole.js'
 import { Prediction } from '../models/Prediction.js'
 import { huggingfaceService } from '../utils/huggingface.js'
+import { orgFilter } from '../utils/access.js'
 
 // For employees who have predictions but skillProfile not yet written
 // (existing data before this feature), fall back to their latest prediction's skillInput
@@ -93,8 +94,7 @@ export const matchService = {
     }
 
     // 2. Get all employees (with their skill profiles)
-    const filter = organizationId ? { organizationId } : {}
-    const employees = await Employee.find(filter)
+    const employees = await Employee.find(orgFilter(organizationId))
 
     // 3. Score each employee
     const results = []

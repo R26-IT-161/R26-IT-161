@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth'
 import toast from 'react-hot-toast'
 import '../styles/auth.css'
 
+const HR_ROLES = ['admin','hr_manager','supervisor']
+
 export default function Register() {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' })
   const { register, loading } = useAuth()
@@ -15,8 +17,8 @@ export default function Register() {
     e.preventDefault()
     const result = await register(form.firstName, form.lastName, form.email, form.password)
     if (result.success) {
-      toast.success('Account created! Please log in.')
-      navigate('/login')
+      toast.success('Account created! Welcome aboard.')
+      navigate(HR_ROLES.includes(result.role) ? '/dashboard' : '/my-dashboard')
     } else {
       toast.error(result.error || 'Registration failed')
     }

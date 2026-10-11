@@ -1,7 +1,7 @@
 import { Prediction } from '../models/Prediction.js'
 import { Employee }   from '../models/Employee.js'
 
-const orgFilter = (id) => id ? { organizationId: id } : {}
+import { orgFilter } from '../utils/access.js'
 
 // Get the most recent prediction per employee
 async function getLatestPerEmployee(employeeIds) {

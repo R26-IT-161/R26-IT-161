@@ -1,13 +1,13 @@
 import { User } from '../models/User.js'
 import { generateToken } from '../utils/jwt.js'
+import { httpError } from '../utils/access.js'
 
 export const authService = {
   async login(email, password) {
-    const user = await User.findOne({ email })
-    if (!user) throw new Error('User not found')
-
-    const isValid = await user.comparePassword(password)
-    if (!isValid) throw new Error('Invalid password')
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+    // Same message for unknown email and wrong password so accounts can't be enumerated
+    const isValid = user ? await user.comparePassword(password) : false
+    if (!isValid) throw httpError(401, 'Invalid email or password')
 
     const token = generateToken(user._id.toString())
     return {
@@ -24,8 +24,8 @@ export const authService = {
   },
 
   async register(firstName, lastName, email, password) {
-    const existing = await User.findOne({ email })
-    if (existing) throw new Error('Email already registered')
+    const existing = await User.findOne({ email: email.toLowerCase().trim() })
+    if (existing) throw httpError(409, 'Email already registered')
 
     const user = new User({ firstName, lastName, email, password })
     await user.save()

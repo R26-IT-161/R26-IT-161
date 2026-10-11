@@ -4,6 +4,7 @@ import { employeeService }       from '../services/employee'
 import { predictionService }     from '../services/prediction'
 import { recommendationsService }from '../services/recommendations'
 import { devplanService }        from '../services/devplan'
+import CourseLinks from '../components/CourseLinks'
 import Layout from '../components/Layout'
 import toast  from 'react-hot-toast'
 
@@ -320,6 +321,7 @@ export default function EmployeeProfile() {
                     <span className="material-icons-round" style={{fontSize:12,verticalAlign:'middle',marginRight:4}}>link</span>
                     {rec.resource}
                   </div>
+                  <CourseLinks courses={rec.courses}/>
                 </div>
               ))}
             </div>

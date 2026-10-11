@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuth } from './hooks/useAuth'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
@@ -30,7 +31,7 @@ function HRRoute({ children }) {
 
 function Root() {
   const { isAuthenticated, user } = useAuth()
-  if (!isAuthenticated) return <Navigate to="/login" />
+  if (!isAuthenticated) return <Landing />
   return <Navigate to={HR_ROLES.includes(user?.role) ? '/dashboard' : '/my-dashboard'} />
 }
 

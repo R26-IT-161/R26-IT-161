@@ -80,7 +80,7 @@ export function generateDevelopmentPlan(stream, { employee, prediction, recommen
     y += 28
 
     recommendations.forEach((rec, i) => {
-      const blockH = 78
+      const blockH = 96
       if (y + blockH > doc.page.height - 60) { doc.addPage(); y = 50 }
 
       // row background
@@ -104,6 +104,22 @@ export function generateDevelopmentPlan(stream, { employee, prediction, recommen
       doc.fontSize(9).fillColor(MID).font('Helvetica')
         .text(`Resource: ${rec.resource}`, 62, y+54, { width: 300 })
         .text(`Timeframe: ${rec.timeframe}`, W-80, y+54)
+
+      // suggested courses (each topic links to a Coursera search)
+      let cx = 62
+      doc.fontSize(9).fillColor(MID).font('Helvetica-Bold').text('Courses:', cx, y+72, { lineBreak: false })
+      cx += doc.widthOfString('Courses:') + 8
+      doc.font('Helvetica')
+      for (const c of (rec.courses || [])) {
+        const label = `${c.topic} (${c.level})`
+        const link  = c.resources?.[0]?.url
+        const w = doc.widthOfString(label)
+        if (cx + w > W + 30) break
+        doc.fillColor('#1A73E8').text(label, cx, y+72, { lineBreak: false })
+        doc.moveTo(cx, y+82).lineTo(cx+w, y+82).lineWidth(0.5).stroke('#1A73E8')
+        if (link) doc.link(cx, y+72, w, 11, link)
+        cx += w + 14
+      }
 
       y += blockH + 4
     })

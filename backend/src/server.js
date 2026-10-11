@@ -1,9 +1,11 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import mongoose from 'mongoose'
 import { createServer } from 'http'
 import { Server as SocketIO } from 'socket.io'
+import { verifyToken } from './utils/jwt.js'
 import { logger } from './utils/logger.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import authRoutes from './routes/auth.js'
@@ -14,7 +16,7 @@ import jobsRoutes from './routes/jobs.js'
 import matchRoutes          from './routes/match.js'
 import devplanRoutes       from './routes/devplan.js'
 import recommendationsRoutes from './routes/recommendations.js'
-import './models/User.js'
+import { User } from './models/User.js'
 import './models/Organization.js'
 import './models/JobRole.js'
 import './models/Employee.js'
@@ -29,8 +31,8 @@ const io = new SocketIO(httpServer, {
 // Middleware
 app.use(helmet())
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true, limit: '50mb' })) // ✅ fixed: added extended: true
+app.use(express.json({ limit: '1mb' }))
+app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
 // Connect MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/skill-tracker'
@@ -39,8 +41,22 @@ mongoose
   .then(() => logger.info('✅ MongoDB connected'))
   .catch(err => logger.error(`❌ MongoDB error: ${err.message}`))
 
-// Socket.io
+// Socket.io — clients must present a valid JWT and only receive events for their own organization
+io.use(async (socket, next) => {
+  try {
+    const decoded = verifyToken(socket.handshake.auth?.token)
+    const user = await User.findById(decoded.id)
+    if (!user) return next(new Error('Unauthorized'))
+    socket.data.user = user
+    next()
+  } catch {
+    next(new Error('Unauthorized'))
+  }
+})
+
 io.on('connection', socket => {
+  const { organizationId } = socket.data.user
+  if (organizationId) socket.join(`org:${organizationId}`)
   logger.info(`User connected: ${socket.id}`)
   socket.on('disconnect', () => logger.info(`User disconnected: ${socket.id}`))
 })

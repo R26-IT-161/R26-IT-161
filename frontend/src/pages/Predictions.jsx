@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { usePrediction } from '../hooks/usePrediction'
-import { SKILLS, SKILL_LABELS, SKILL_COURSES } from '../utils/constants'
+import { SKILLS, SKILL_LABELS } from '../utils/constants'
+import { recommendationsService } from '../services/recommendations'
+import CourseLinks from '../components/CourseLinks'
 import { employeeService } from '../services/employee'
 import { jobsService } from '../services/jobs'
 import Layout from '../components/Layout'
@@ -109,6 +111,17 @@ export default function Predictions() {
   const [showAllSkills, setShowAllSkills] = useState(false)
 
   const { skills, setSkills, updateSkill, resetSkills, predict, result, setResult, loading } = usePrediction()
+  const [recs, setRecs] = useState({}) // skill -> recommendation (with course suggestions) for the current result
+
+  useEffect(() => {
+    setRecs({})
+    if (!result?._id) return
+    let cancelled = false
+    recommendationsService.getForPrediction(result._id)
+      .then(list => { if (!cancelled) setRecs(Object.fromEntries(list.map(r => [r.skill, r]))) })
+      .catch(() => {}) // courses are a bonus; the result is still shown without them
+    return () => { cancelled = true }
+  }, [result?._id])
 
   useEffect(() => {
     employeeService.getAll(1, 100)
@@ -394,9 +407,10 @@ export default function Predictions() {
                   <span className="material-icons-round" style={{fontSize:18, color:'var(--md-primary)'}}>trending_up</span>
                   Skills to Improve ({result.gaps.length})
                 </div>
+                <p className="cs-note" style={{marginTop:0,marginBottom:10}}>Courses to help {selected?.firstName} reach the level this role needs, biggest gaps first. Links open a course search for each topic.</p>
                 <div className="gap-courses-list">
                   {[...result.gaps].sort((a,b)=>b.gap-a.gap).map((g,i)=>{
-                    const course = SKILL_COURSES[g.skill]
+                    const rec = recs[g.skill]
                     const isHigh = g.gapLabel === 'High'
                     return (
                       <div key={i} className="gap-course-row" style={isHigh?{borderColor:'#C5221F33'}:undefined}>
@@ -406,11 +420,14 @@ export default function Predictions() {
                           <span className="gap-chip-delta">+{g.gap} needed</span>
                           {isHigh && <span className="gap-priority-badge">Priority</span>}
                         </div>
-                        {course && (
-                          <div className="gap-course-rec">
-                            <span className="material-icons-round" style={{fontSize:14,color:'var(--md-on-surface-variant)'}}>school</span>
-                            <span><strong>{course.title}</strong> · {course.provider} · {course.duration}</span>
-                          </div>
+                        {rec && (
+                          <>
+                            <div className="gap-course-rec">
+                              <span className="material-icons-round" style={{fontSize:14,color:'var(--md-on-surface-variant)'}}>arrow_right</span>
+                              <span>{rec.action}</span>
+                            </div>
+                            <CourseLinks courses={rec.courses}/>
+                          </>
                         )}
                       </div>
                     )

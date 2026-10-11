@@ -52,6 +52,20 @@ print(f"✅ Ready: {len(JOBS)} jobs, {len(SKILLS)} skills")
 # HELPER FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────
 
+def normalize_experience(value):
+    """Accept an experience bucket ('<1', '1-3', '3-5', '>5') or a number of years."""
+    if isinstance(value, str) and value in EXP_MAP:
+        return value
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        return None
+    if value < 1:
+        return '<1'
+    if value <= 3:
+        return '1-3'
+    if value <= 5:
+        return '3-5'
+    return '>5'
+
 def label_gap(gap):
     if gap <= 0: return 0
     elif gap == 1: return 1
@@ -571,13 +585,28 @@ def api_job_skills(job_name):
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
     """Predict readiness"""
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object'}), 400
+
     job_name = data.get('job_name')
     experience = data.get('experience', '1-3')
     skills = data.get('skills', {})
-    
+
     if job_name not in JOBS:
         return jsonify({'error': f'Job "{job_name}" not found'}), 400
+
+    experience = normalize_experience(experience)
+    if experience is None:
+        return jsonify({'error': f'experience must be one of {list(EXP_MAP)} or a number of years'}), 400
+
+    if not isinstance(skills, dict):
+        return jsonify({'error': 'skills must be an object'}), 400
+    for skill, level in skills.items():
+        if skill not in SKILLS:
+            return jsonify({'error': f'Unknown skill "{skill}"'}), 400
+        if isinstance(level, bool) or not isinstance(level, (int, float)) or not 1 <= level <= 5:
+            return jsonify({'error': f'Skill "{skill}" must be a number from 1 to 5'}), 400
     
     if model is None:
         return jsonify({'error': 'Model not loaded'}), 500

@@ -1,0 +1,30 @@
+/* ── Course suggestions ── */
+.cs-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.cs-item {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px;
+  padding: 8px 12px; border-radius: 10px; background: var(--md-surface-dim, #F8F9FA);
+}
+.cs-topic { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--md-on-surface); }
+.cs-topic .material-icons-round { font-size: 16px; color: var(--md-primary); }
+.cs-topic-name { font-weight: 500; }
+.cs-topic-name::first-letter { text-transform: uppercase; }
+.cs-level {
+  font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 50px;
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
+}
+.cs-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-link {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 50px;
+  border: 1px solid var(--md-outline); background: var(--md-surface);
+  font-size: 12px; font-weight: 500; color: var(--md-primary); text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.cs-link:hover { background: var(--md-primary-container); border-color: var(--md-primary-container); }
+.cs-link:focus-visible { outline: 2px solid var(--md-primary); outline-offset: 2px; }
+.cs-link .material-icons-round { font-size: 13px; }
+.cs-link small { font-size: 10px; font-weight: 700; color: var(--md-success); background: var(--md-success-container); border-radius: 50px; padding: 0 6px; }
+.cs-priority { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 50px; letter-spacing: .3px; }
+.cs-priority-High   { color: #C5221F; background: #FCE8E6; }
+.cs-priority-Medium { color: #7A4F00; background: #FEF7E0; }
+.cs-priority-Low    { color: #1E6B35; background: #E6F4EA; }
+.cs-note { margin-top: 12px; font-size: 12px; color: var(--md-on-surface-variant); }

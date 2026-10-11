@@ -1,6 +1,7 @@
 import { Prediction } from '../models/Prediction.js'
 import { Employee }   from '../models/Employee.js'
 import { huggingfaceService } from '../utils/huggingface.js'
+import { orgFilter } from '../utils/access.js'
 
 export const predictionService = {
   async predict(employeeId, jobRole, experience, skills) {
@@ -33,8 +34,11 @@ export const predictionService = {
     return Prediction.find({ employeeId }).sort({ createdAt: -1 })
   },
 
-  async getHistory(limit = 10) {
-    return Prediction.find().sort({ createdAt: -1 }).limit(limit)
+  async getHistory(limit = 10, organizationId) {
+    limit = Math.min(100, Math.max(1, Number.isFinite(limit) ? Math.floor(limit) : 10))
+    const employees = await Employee.find(orgFilter(organizationId)).select('_id')
+    return Prediction.find({ employeeId: { $in: employees.map(e => e._id) } })
+      .sort({ createdAt: -1 }).limit(limit)
   },
 
   async batchPredict(predictions) {

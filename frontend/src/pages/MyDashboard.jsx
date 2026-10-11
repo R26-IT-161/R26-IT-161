@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { analyticsService } from '../services/analytics'
+import { recommendationsService } from '../services/recommendations'
+import CourseLinks from '../components/CourseLinks'
 import Layout from '../components/Layout'
 import toast from 'react-hot-toast'
 
@@ -11,10 +13,17 @@ export default function MyDashboard() {
   const { user } = useAuth()
   const [stats,   setStats]   = useState(null)
   const [loading, setLoading] = useState(true)
+  const [recs,    setRecs]    = useState([])
 
   useEffect(() => {
     analyticsService.getMyStats()
-      .then(setStats)
+      .then(s => {
+        setStats(s)
+        const latest = s?.predictions?.[0]
+        if (latest?._id && latest.gaps?.length) {
+          recommendationsService.getForPrediction(latest._id).then(setRecs).catch(() => {})
+        }
+      })
       .catch(() => toast.error('Failed to load your stats'))
       .finally(() => setLoading(false))
   }, [])
@@ -106,6 +115,28 @@ export default function MyDashboard() {
                 })}
           </div>
         </div>
+
+        {recs.length > 0 && (
+          <div className="md-card" style={{padding:20,marginBottom:20}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,fontSize:14,fontWeight:500,marginBottom:4}}>
+              <span className="material-icons-round" style={{fontSize:18,color:'var(--md-primary)'}}>school</span>Courses to get you role-ready
+            </div>
+            <p className="cs-note" style={{marginTop:0,marginBottom:14}}>Based on your latest assessment. Start with the highest priority skills. Links open a course search for each topic.</p>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              {recs.map(r => (
+                <div key={r.skill}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                    <span style={{fontSize:13,fontWeight:600}}>{r.label}</span>
+                    <span style={{fontSize:12,color:'var(--md-on-surface-variant)'}}>level {r.empLevel} → {r.reqLevel}</span>
+                    <span className={`cs-priority cs-priority-${r.priority}`}>{r.priority} priority</span>
+                  </div>
+                  <div style={{fontSize:12,color:'var(--md-on-surface-variant)',marginTop:2}}>{r.action}</div>
+                  <CourseLinks courses={r.courses}/>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div style={{display:'flex',alignItems:'flex-start',gap:10,background:'#E8F0FE',borderRadius:12,padding:'14px 18px',fontSize:13,color:'#1A73E8'}}>
           <span className="material-icons-round" style={{fontSize:20}}>lightbulb</span>

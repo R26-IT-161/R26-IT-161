@@ -1,4 +1,6 @@
 @echo off
+if not exist backend\.env copy backend\.env.example backend\.env >nul
+if not exist frontend\.env copy frontend\.env.example frontend\.env >nul
 echo ==========================================
 echo Installing backend dependencies...
 echo ==========================================
