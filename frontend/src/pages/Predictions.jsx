@@ -372,13 +372,7 @@ export default function Predictions() {
                 </div>
               </div>
               <div className="result-hero-stats">
-                <div className="result-hero-stat">
-                  <div className="rhs-val" style={{color:rc.color}}>{confPct}%</div>
-                  <div className="rhs-label">Confidence</div>
-                  <div className="conf-bar">
-                    <div className="conf-fill" style={{width:`${confPct}%`, background:rc.color}}/>
-                  </div>
-                </div>
+               
                 <div className="result-hero-stat">
                   <div className="rhs-val">{result.totalGap||0}</div>
                   <div className="rhs-label">Total Gap</div>
